@@ -50,7 +50,15 @@ def backward_pass(
     dl_dw2: torch.Tensor,
     dl_db2: torch.Tensor,
 ):
-    return
+    dl_dx2 = dloss(x2, t)
+    dl_ds2 = dl_dx2 * dsigma(s2)
+    dl_dx1 = dl_ds2 @ w2
+    dl_ds1 = dl_dx1 * dsigma(s1)
+
+    dl_dw2 += dl_ds2.view(-1, 1) @ x1.view(1, -1)
+    dl_db2 += dl_ds2
+    dl_dw1 += dl_ds1.view(-1, 1) @ x.view(1, -1)
+    dl_db1 += dl_ds1
 
 
 if __name__ == "__main__":
