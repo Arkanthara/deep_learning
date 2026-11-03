@@ -1,0 +1,11 @@
+---
+const layers = [3,5,5,3];
+const points = layers.map((n,i)=>Array.from({length:n},(_,j)=>({x:55+i*102,y:110+(j-(n-1)/2)*42})));
+---
+<svg viewBox="0 0 420 240" fill="none" class="network" aria-hidden="true">
+  <defs><radialGradient id="network-glow"><stop stop-color="#8f79d1" stop-opacity=".16"/><stop offset="1" stop-color="#8f79d1" stop-opacity="0"/></radialGradient></defs>
+  <ellipse cx="210" cy="120" rx="205" ry="115" fill="url(#network-glow)"/>
+  {points.slice(0,-1).map((layer,i)=>layer.map((p,j)=>points[i+1].map((q,k)=><line x1={p.x} y1={p.y} x2={q.x} y2={q.y} stroke={(j+k)%4===0?'#9980d4':'#393449'} stroke-opacity={(j+k)%4===0?'.55':'.6'}/>)))}
+  {points.map((layer,i)=>layer.map((p,j)=><g><circle cx={p.x} cy={p.y} r="10" fill="#1c202d" stroke={i===3?'#91cdb5':'#a895db'} stroke-width="1.5"/><circle cx={p.x} cy={p.y} r="3" fill={i===3?'#91cdb5':'#a895db'} opacity={(j+i)%2===0?'.9':'.4'}/></g>))}
+  <text x="40" y="230" fill="#9395a8" font-family="monospace" font-size="10">INPUT</text><text x="172" y="230" fill="#9395a8" font-family="monospace" font-size="10">REPRESENTATION</text><text x="341" y="230" fill="#91cdb5" font-family="monospace" font-size="10">OUTPUT</text>
+</svg>

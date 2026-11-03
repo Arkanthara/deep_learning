@@ -1,0 +1,17 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import {getCollection,render} from 'astro:content';
+import {languages,href,type Lang} from '../../data/course';
+export function getStaticPaths(){return languages.map(lang=>({params:{lang}}));}
+const lang=Astro.params.lang as Lang;const t=(fr:string,en:string)=>lang==='fr'?fr:en;
+const note=(await getCollection('notes')).find(n=>n.data.lang===lang);
+if(!note) throw new Error(`Missing draft translation: ${lang}`);
+const {Content}=await render(note);
+---
+<Layout lang={lang} title={note.data.title} description={note.data.description} route="draft/">
+  <div class="reading-width">
+    <header class="page-heading"><p class="eyebrow">{t('CHAPITRE 14 / BROUILLON','CHAPTER 14 / DRAFT')}</p><h1>{note.data.title}</h1><p>{note.data.description}</p></header>
+    <div class="prose"><Content/></div>
+    <a class="button" href={href(`handout/${note.data.source}#page=2`)}>{t('Lire le brouillon original','Read the original draft')} ↗</a>
+  </div>
+</Layout>

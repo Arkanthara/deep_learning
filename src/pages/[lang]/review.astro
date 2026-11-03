@@ -1,0 +1,11 @@
+---
+import Layout from '../../layouts/Layout.astro';import Formula from '../../components/Formula.astro';
+import {lessons,chapters,languages,href,type Lang} from '../../data/course';
+export function getStaticPaths(){return languages.map(lang=>({params:{lang}}));}
+const lang=Astro.params.lang as Lang;const t=(fr:string,en:string)=>lang==='fr'?fr:en;
+---
+<Layout lang={lang} title={t('Révision rapide','Quick revision')} route="review/" active="review">
+<header class="page-heading"><p class="eyebrow">{t('MODE RÉVISION','REVISION MODE')}</p><h1>{t('L’essentiel, à portée de main.','The essentials, at your fingertips.')}</h1><p>{t('Lis les trois idées clés, essaie de retrouver la formule, puis révèle le mémo pour vérifier.','Read the three key ideas, try to recall the formula, then reveal the memo to check.')}</p></header>
+<div class="filter-bar"><label for="review-chapter">{t('Choisir un chapitre','Choose a chapter')}</label><select id="review-chapter" data-chapter-filter><option value="all">{t('Tous les chapitres','All chapters')}</option>{chapters.map(c=><option value={c.id}>{c.id}. {c.title[lang]}</option>)}</select><span class="muted">{lessons.length} {t('fiches','revision notes')}</span></div>
+<div class="revision-grid reading-width">{lessons.map(l=><article class="revision-card" id={l.id} data-filter-chapter={l.chapter}><p class="eyebrow">{t('CHAPITRE','CHAPTER')} {String(l.chapter).padStart(2,'0')} / {l.id.replace('-','.')}</p><h2>{l.title[lang]}</h2><ul class="takeaways">{l.summary[lang].map(s=><li>{s}</li>)}</ul><details><summary>{t('Révéler la formule et le piège','Reveal the formula and pitfall')}</summary><Formula formula={l.formula[lang]}/><div class="pitfall"><h3>{t('À surveiller','Watch out')}</h3><p>{l.pitfall[lang]}</p></div></details><a class="text-link" href={href(`${lang}/lessons/${l.id}/`)}>{t('Revoir la leçon','Revisit the lesson')} →</a></article>)}</div>
+</Layout>

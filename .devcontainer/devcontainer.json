@@ -1,0 +1,35 @@
+{
+  "name": "Deep Learning Quest · Astro",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:5-24-bookworm",
+  "remoteUser": "node",
+  "forwardPorts": [
+    4321
+  ],
+  "portsAttributes": {
+    "4321": {
+      "label": "Deep Learning Quest",
+      "onAutoForward": "notify"
+    }
+  },
+  "containerEnv": {
+    "ASTRO_TELEMETRY_DISABLED": "1"
+  },
+  "postCreateCommand": "npm ci && node scripts/copy-handouts.mjs && npx playwright install --with-deps chromium",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "astro-build.astro-vscode",
+        "yzhang.markdown-all-in-one",
+        "redhat.vscode-yaml",
+        "ms-playwright.playwright"
+      ],
+      "settings": {
+        "editor.tabSize": 2,
+        "files.trimTrailingWhitespace": true,
+        "[markdown]": {
+          "editor.wordWrap": "on"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import {render} from 'astro:content';
+import Quiz from '../../../components/Quiz.astro';
+import {lessons,chapters,languages,href,minutes,type Lang} from '../../../data/course';
+export function getStaticPaths(){return languages.flatMap(lang=>lessons.map(lesson=>({params:{lang,lesson:lesson.id},props:{lesson}})));}
+const {lesson:l}=Astro.props;const lang=Astro.params.lang as Lang;const t=(fr:string,en:string)=>lang==='fr'?fr:en;
+const index=lessons.findIndex(x=>x.id===l.id);const prev=lessons[index-1];const next=lessons[index+1];
+const {Content,headings}=await render(l.entries[lang]);
+---
+<Layout lang={lang} title={l.title[lang]} description={l.intro[lang]} route={`lessons/${l.id}/`} chapter={l.chapter}>
+  <div class="lesson-shell" data-current-lesson={l.id}>
+    <a class="back-link" href={href(`${lang}/chapters/${l.chapter}/`)}>← {chapters[l.chapter-1].title[lang]}</a>
+    <header class="page-heading"><p class="eyebrow">{t('CHAPITRE','CHAPTER')} {String(l.chapter).padStart(2,'0')} / {t('PARTIE','PART')} {l.part}</p><h1>{l.title[lang]}</h1><div class="lesson-meta"><span>{minutes(l,lang)} min {t('de lecture guidée','guided reading')}</span><span>·</span><a href={href(`handout/${l.source}`)}>PDF · {l.pdfPages} pages ↗</a><span>·</span><span class="tag">+20 XP</span></div></header>
+    <div class="lesson-layout"><article class="lesson-content">
+      <div class="markdown-body"><Content/></div>
+      <section id="remember"><h2>{t('À retenir en 30 secondes','Remember in 30 seconds')}</h2><ul class="takeaways">{l.summary[lang].map(s=><li>{s}</li>)}</ul></section>
+      <section class="pitfall"><h3>{t('Le piège à éviter','The pitfall to avoid')}</h3><p>{l.pitfall[lang]}</p></section>
+      <section id="practice"><h2>{t('À toi de jouer','Your turn')}</h2><Quiz lessons={[l]} lang={lang} id={`lesson-${l.id}`}/></section>
+      <section id="source" class="source-links"><p>{t('Adaptation pédagogique du handout de François Fleuret. Pour les démonstrations détaillées, figures et références, consulte le support original.','Educational adaptation of François Fleuret’s handout. For full derivations, figures and references, consult the original source.')}</p><a href={href(`handout/${l.source}`)}>{l.source} ↗</a><div><span>{t('Pages du PDF utilisées :','PDF pages used:')}</span>{l.sourcePages.map(page=><a href={href(`handout/${l.source}#page=${page}`)}>p. {page}</a>)}</div></section>
+      <button class="button primary" data-complete={l.id} aria-pressed="false">{t('Marquer comme terminée','Mark as complete')}</button>
+    </article><aside class="lesson-toc"><h2>{t('DANS CETTE LEÇON','IN THIS LESSON')}</h2>{headings.filter(h=>h.depth===2).map(h=><a href={`#${h.slug}`}>{h.text}</a>)}<a href="#remember">{t('L’essentiel','The essentials')}</a><a href="#practice">Quiz</a><a href="#source">Source</a><a class="button" href={href(`${lang}/review/?chapter=${l.chapter}#${l.id}`)}>{t('Fiche de révision','Revision notes')} ↗</a></aside></div>
+    <nav class="lesson-nav" aria-label={t('Navigation entre leçons','Lesson navigation')}>{prev?<a href={href(`${lang}/lessons/${prev.id}/`)}><small>← {t('Leçon précédente','Previous lesson')}</small>{prev.id.replace('-','.')} · {prev.title[lang]}</a>:<span/>}{next?<a href={href(`${lang}/lessons/${next.id}/`)}><small>{t('Leçon suivante','Next lesson')} →</small>{next.id.replace('-','.')} · {next.title[lang]}</a>:<a href={href(`${lang}/quiz/`)}><small>{t('Dernière leçon terminée ?','Finished the final lesson?')}</small>{t('Retour aux quiz','Return to quizzes')} →</a>}</nav>
+  </div>
+</Layout>

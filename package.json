@@ -1,0 +1,39 @@
+{
+  "name": "deep-learning-quest",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.23.4"
+  },
+  "scripts": {
+    "dev": "astro dev --host 0.0.0.0",
+    "check": "astro check && node scripts/check-content.mjs",
+    "prebuild": "node scripts/copy-handouts.mjs",
+    "build": "astro build",
+    "postbuild": "node scripts/check-links.mjs",
+    "preview": "astro preview --host 0.0.0.0",
+    "test": "node --test tests/*.test.mjs",
+    "test:e2e": "playwright test",
+    "validate": "npm run check && npm test && npm run build && npm run test:e2e",
+    "predev": "node scripts/copy-handouts.mjs"
+  },
+  "dependencies": {
+    "@astrojs/markdown-remark": "7.3.4",
+    "astro": "7.4.2",
+    "katex": "0.19.1",
+    "rehype-katex": "7.0.1",
+    "remark-math": "6.0.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.12",
+    "@playwright/test": "1.64.1",
+    "@types/katex": "^0.16.7",
+    "@types/node": "24.19.2",
+    "typescript": "~5.9.3",
+    "yaml": "2.9.1"
+  },
+  "overrides": {
+    "katex": "$katex"
+  }
+}

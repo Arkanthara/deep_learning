@@ -1,0 +1,15 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import Quiz from '../../../components/Quiz.astro';
+import {chapters,languages,href,minutes,type Lang} from '../../../data/course';
+export function getStaticPaths(){return languages.flatMap(lang=>chapters.map(chapter=>({params:{lang,chapter:String(chapter.id)},props:{chapter}})));}
+const {chapter:c}=Astro.props;const lang=Astro.params.lang as Lang;
+const t=(fr:string,en:string)=>lang==='fr'?fr:en;
+---
+<Layout lang={lang} title={c.title[lang]} route={`chapters/${c.id}/`} chapter={c.id}>
+  <a class="back-link" href={href(`${lang}/`)}>← {t('Tous les chapitres','All chapters')}</a>
+  <header class="page-heading"><p class="eyebrow">{t('CHAPITRE','CHAPTER')} {String(c.id).padStart(2,'0')} / {c.group[lang]}</p><h1>{c.title[lang]}</h1><p>{c.description[lang]} {t('Suis les parties dans l’ordre, puis teste ce que tu as retenu.','Work through the parts in order, then test what you remember.')}</p></header>
+  <div class="chapter-layout"><section aria-label={t('Leçons du chapitre','Chapter lessons')} class="lesson-list">{c.lessons.map(l=><a href={href(`${lang}/lessons/${l.id}/`)}><span class="lesson-number">{l.id.replace('-','.')}</span><div><strong>{l.title[lang]}</strong><small>{minutes(l,lang)} min · {l.pdfPages} {t('pages dans le handout','pages in the handout')}</small></div><span data-lesson-status={l.id} aria-label={t('À lire','To read')}>→</span></a>)}</section><aside class="panel" data-chapter={c.id} data-lesson-ids={c.lessons.map(l=>l.id).join(',')}><p class="eyebrow">{t('TA PROGRESSION','YOUR PROGRESS')}</p><h2><span data-card-progress>0/{c.lessons.length}</span> {t('leçons','lessons')}</h2><div class="progress-track"><span data-card-bar></span></div><p style="margin-top:16px">{t('Chaque leçon terminée rapporte 20 XP. Tu peux réviser et recommencer les quiz autant que nécessaire.','Each completed lesson earns 20 XP. Revise and retry the quizzes as often as you need.')}</p><a class="button primary" href={href(`${lang}/review/?chapter=${c.id}`)}>{t('Ouvrir les fiches','Open revision notes')} ↗</a><a class="button" href="#chapter-quiz">{t('Passer au quiz','Jump to quiz')} ↓</a></aside></div>
+  <section id="chapter-quiz"><div class="section-heading"><h2>{t('Le défi du chapitre','Chapter challenge')}</h2><p data-best-score={`chapter-${c.id}`}></p></div><Quiz lessons={c.lessons} lang={lang} id={`chapter-${c.id}`}/></section>
+  <nav class="lesson-nav" aria-label={t('Navigation entre chapitres','Chapter navigation')}>{c.id>1?<a href={href(`${lang}/chapters/${c.id-1}/`)}><small>← {t('Chapitre précédent','Previous chapter')}</small>{chapters[c.id-2].title[lang]}</a>:<span/>}{c.id<13&&<a href={href(`${lang}/chapters/${c.id+1}/`)}><small>{t('Chapitre suivant','Next chapter')} →</small>{chapters[c.id].title[lang]}</a>}</nav>
+</Layout>

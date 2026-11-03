@@ -1,0 +1,49 @@
+---
+import '../styles/global.css';
+import 'katex/dist/katex.min.css';
+import {chapters,lessons,href,type Lang} from '../data/course';
+interface Props { lang:Lang; title:string; description?:string; route?:string; active?:string; chapter?:number }
+const {lang,title,description,route='',active='course',chapter} = Astro.props;
+const t=(fr:string,en:string)=>lang==='fr'?fr:en;
+const nav=[['course','',t('Parcours','Learning path'),'◈'],['review','review/',t('Révision rapide','Quick revision'),'▤'],['quiz','quiz/',t('Zone de quiz','Quiz arena'),'⌘'],['labs','labs/',t('Laboratoire','Lab'),'⌁']];
+---
+<!doctype html>
+<html lang={lang}>
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>{title} · Deep Learning Quest</title>
+  <meta name="description" content={description || t('Comprendre, réviser et pratiquer le deep learning. Un parcours bilingue fondé sur le cours de François Fleuret.','Understand, revise and practise deep learning. A bilingual learning path based on François Fleuret’s course.')}/>
+  <meta name="theme-color" content="#10131b"/>
+  <link rel="icon" type="image/svg+xml" href={href('favicon.svg')}/>
+  <link rel="canonical" href={new URL(href(`${lang}/${route}`),Astro.site)}/>
+  <link rel="alternate" hreflang="fr" href={new URL(href(`fr/${route}`),Astro.site)}/>
+  <link rel="alternate" hreflang="en" href={new URL(href(`en/${route}`),Astro.site)}/>
+</head>
+<body data-lang={lang} data-base={href()} data-total={lessons.length}>
+  <a class="skip-link" href="#main">{t('Aller au contenu','Skip to content')}</a>
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href={href(`${lang}/`)} aria-label="Deep Learning Quest"><img src={href('favicon.svg')} alt="" width="38" height="38"/><span>DEEP LEARNING<small>QUEST <span class="brand-version">/ 01</span></small></span></a>
+    <p class="nav-label">{t('ESPACE D’APPRENTISSAGE','LEARNING SPACE')}</p>
+    <nav aria-label={t('Navigation principale','Main navigation')} class="main-nav">
+      {nav.map(([key,path,label,icon])=><a href={href(`${lang}/${path}`)} class:list={{selected:active===key}} aria-current={active===key?'page':undefined}><span aria-hidden="true" class="nav-icon">{icon}</span>{label}{key==='labs'&&<small class="soon">V2</small>}</a>)}
+    </nav>
+    <div class="sidebar-divider"></div>
+    <p class="nav-label">{t('LES CHAPITRES','THE CHAPTERS')} <span>13</span></p>
+    <nav class="chapter-nav" aria-label={t('Chapitres','Chapters')}>
+      {chapters.map(c=><a href={href(`${lang}/chapters/${c.id}/`)} class:list={{'current-chapter':chapter===c.id}} aria-current={chapter===c.id?'location':undefined}><span class="chapter-index">{String(c.id).padStart(2,'0')}</span><span>{c.title[lang]}</span><span class="chapter-done" data-chapter-done={c.id} aria-hidden="true"></span></a>)}
+    </nav>
+    <div class="sidebar-bottom"><span class="status-dot"></span>{t('À ton rythme. Une notion à la fois.','Your pace. One concept at a time.')}<a href={href(`${lang}/sources/`)}>{t('Sources & crédits','Sources & credits')} ↗</a></div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar">
+      <button class="menu-toggle icon-button" aria-controls="sidebar" aria-expanded="false" aria-label={t('Ouvrir le menu','Open menu')}>☰</button>
+      <div class="breadcrumb"><a href={href(`${lang}/`)}>Deep Learning</a><span>/</span><span>{chapter?`${t('Chapitre','Chapter')} ${String(chapter).padStart(2,'0')}`:t('Espace de révision','Study workspace')}</span></div>
+      <div class="top-actions"><span class="xp"><span aria-hidden="true">✦</span> <span data-xp>0</span> XP</span><nav class="language-switch" aria-label={t('Langue','Language')}><a href={href(`fr/${route}`)} lang="fr" aria-current={lang==='fr'?'true':undefined}>FR</a><a href={href(`en/${route}`)} lang="en" aria-current={lang==='en'?'true':undefined}>EN</a></nav></div>
+    </header>
+    <main id="main" tabindex="-1"><slot/></main>
+    <footer class="footer"><span>DEEP LEARNING QUEST <span class="muted">/ {t('Comprendre. Pratiquer. Progresser.','Understand. Practise. Progress.')}</span></span><a href={href(`${lang}/sources/`)}>François Fleuret · CC BY-NC-SA 4.0</a></footer>
+  </div>
+  <p class="storage-notice" role="status" hidden>{t('Le stockage local est indisponible : ta progression ne sera pas conservée après fermeture.','Local storage is unavailable: your progress will not persist after closing.')}</p>
+  <script>import '../scripts/app';</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+---
+import {href,type Lesson,type Lang} from '../data/course';
+interface Props { lessons:Lesson[]; lang:Lang; id:string }
+const {lessons,lang,id} = Astro.props;
+const t=(fr:string,en:string)=>lang==='fr'?fr:en;
+const data=lessons.map(l=>({id:l.id,title:l.title[lang],question:l.quiz.question[lang],options:l.quiz.options[lang],answer:l.quiz.answer[lang],explanation:l.quiz.explanation[lang],url:href(`${lang}/lessons/${l.id}/`)}));
+---
+<section class="quiz" data-quiz-id={id} data-lang={lang} aria-label={t('Quiz interactif','Interactive quiz')}>
+  <script type="application/json" data-quiz-data set:html={JSON.stringify(data).replace(/</g,'\\u003c')}/>
+  <div class="quiz-topline"><span class="eyebrow">{t('TESTE TES CONNAISSANCES','CHECK YOUR UNDERSTANDING')}</span><span data-quiz-counter></span></div>
+  <div class="progress-track" aria-hidden="true"><span data-quiz-bar></span></div>
+  <div data-quiz-stage></div>
+  <noscript><p class="quiz-noscript">{t('Active JavaScript pour répondre au quiz interactif. Les cours et fiches restent lisibles sans JavaScript.','Enable JavaScript to answer the interactive quiz. Lessons and revision notes remain readable without JavaScript.')}</p></noscript>
+</section>
+<script>import '../scripts/quiz';</script>

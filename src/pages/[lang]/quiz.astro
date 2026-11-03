@@ -1,0 +1,11 @@
+---
+import Layout from '../../layouts/Layout.astro';import Quiz from '../../components/Quiz.astro';
+import {chapters,languages,type Lang} from '../../data/course';
+export function getStaticPaths(){return languages.map(lang=>({params:{lang}}));}
+const lang=Astro.params.lang as Lang;const t=(fr:string,en:string)=>lang==='fr'?fr:en;
+---
+<Layout lang={lang} title={t('Zone de quiz','Quiz arena')} route="quiz/" active="quiz">
+<header class="page-heading"><p class="eyebrow">{t('MODE ENTRAÎNEMENT','PRACTICE MODE')}</p><h1>{t('Vérifie ce que tu maîtrises.','Find out what you know.')}</h1><p>{t('Pas de chronomètre. Une question à la fois, une explication à chaque réponse. Ton meilleur score est conservé pour chaque chapitre.','No timer. One question at a time, an explanation after every answer. Your best score is saved for each chapter.')}</p></header>
+<div class="filter-bar"><label for="quiz-chapter">{t('Choisir un chapitre','Choose a chapter')}</label><select id="quiz-chapter" data-chapter-filter>{chapters.map(c=><option value={c.id}>{c.id}. {c.title[lang]}</option>)}</select></div>
+{chapters.map(c=><section class="reading-width" data-filter-chapter={c.id} hidden={c.id!==1}><div class="section-heading"><h2>{c.title[lang]}</h2><p data-best-score={`chapter-${c.id}`}></p></div><Quiz lessons={c.lessons} lang={lang} id={`chapter-${c.id}`}/></section>)}
+</Layout>
