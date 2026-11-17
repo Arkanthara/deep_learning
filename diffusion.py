@@ -32,22 +32,33 @@ if __name__ == "__main__":
 
     gpu = torch.cuda.is_available()
     device = torch.device('cuda:0' if gpu else 'cpu')
+    dataset_name = 'CelebA'
     
+    # torch.set_num_threads(4)
+    # torch.backends.cudnn.benchmark = True
+
     dl, info = load_dataset_and_make_dataloaders(
-        dataset_name='FashionMNIST',
-        root_dir='data', # choose the directory to store the data 
-        batch_size=512,
-        num_workers=16,
-        pin_memory=gpu,
+        dataset_name="CelebA",
+        root_dir="data",
+        batch_size=32,
+        num_workers=8,
+        pin_memory=True,
     )
+
+    model = Model(
+        image_channels=info.image_channels,
+        nb_channels=64,
+        num_blocks=4,
+        cond_channels=0,
+    ).to(device=device, memory_format=torch.channels_last)
+
+    criterion = nn.MSELoss()
+    optimizer = optim.Adam(model.parameters(), lr=1e-3, fused=True)
+    sigma_data = info.sigma_data.to(device)
 
     nb_epochs = 100
 
-    assert not os.path.exists(f'model_{nb_epochs}.pth'), "Model already exists. Please remove it or change the number of epochs."
-
-    model = Model(image_channels=info.image_channels, nb_channels=64, num_blocks=4, cond_channels=0)
-    criterion = nn.MSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=1e-3)
+    assert not os.path.exists(f'model_{dataset_name}_{nb_epochs}.pth'), "Model already exists. Please remove it or change the number of epochs."
 
     criterion.to(device)
     model.to(device)
@@ -60,7 +71,11 @@ if __name__ == "__main__":
         image_count = 0
         batches = tqdm(dl.train, desc=f"Epoch {epoch + 1}/{nb_epochs}", leave=False)
         for y, _ in batches:
-            y = y.to(device, non_blocking=True)
+            y = y.to(
+                device,
+                non_blocking=True,
+                memory_format=torch.channels_last,
+            )
             # One random noise level per image; the 50-step schedule is for generation.
             sigma = sample_sigma(y.shape[0], device=device)
             sigma_image = sigma.view(-1, 1, 1, 1)
@@ -71,8 +86,10 @@ if __name__ == "__main__":
             cnoise = c_noise(sigma)
 
             model.zero_grad()
-            x_pred = model(x * cin, cnoise)
-            loss = criterion(x_pred, (y - cskip * x) / cout)
+            target = (y - cskip * x) / cout
+            with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
+                x_pred = model(x * cin, cnoise)
+                loss = criterion(x_pred, target)
             loss.backward()
             optimizer.step()
             # Keep accumulation on the GPU; transfer one scalar per epoch.
@@ -81,4 +98,6 @@ if __name__ == "__main__":
 
         list_losses[epoch] = epoch_loss / image_count
         tqdm.write(f"Epoch {epoch + 1}: mean loss = {list_losses[epoch].item():.5f}")
-    torch.save(model, f'model_{nb_epochs}.pth')
+        if epoch % 10 == 0:
+            torch.save(model, f'model_{dataset_name}_{nb_epochs}_epoch{epoch}.pth')
+    torch.save(model, f'model_{dataset_name}_{nb_epochs}.pth')

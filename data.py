@@ -49,6 +49,10 @@ def load_dataset(dataset_name='FashionMNIST', root_dir='data') -> Tuple[Dataset,
     
     return train_dataset, valid_dataset, DataInfo(c, h, num_classes, sigma_data)
 
+# Fix on windows for multiprocessing with num_workers > 0
+def collate_without_labels(batch):
+    images, _ = default_collate(batch)
+    return images, None
 
 def make_dataloaders(
         train_dataset: Dataset,
@@ -59,7 +63,7 @@ def make_dataloaders(
         pin_memory: bool = False    
     ) -> DataLoaders:
     
-    collate_fn = default_collate if num_classes is not None else lambda batch: (default_collate(batch)[0], None)
+    collate_fn = default_collate if num_classes is not None else collate_without_labels
     kwargs = {'collate_fn': collate_fn, 'num_workers': num_workers, 'persistent_workers': (num_workers > 0), 'pin_memory': pin_memory}
     
     return DataLoaders(

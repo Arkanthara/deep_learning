@@ -3,6 +3,7 @@ name = "deep-learning"
 version = "0.1.0"
 requires-python = ">=3.14"
 dependencies = [
+    "gdown>=6.5.1",
     "matplotlib>=3.11.2",
     "torch>=2.14.0",
     "torchvision>=0.29.1",
