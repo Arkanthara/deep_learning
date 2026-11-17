@@ -13,12 +13,21 @@ class Model(nn.Module):
     ) -> None:
         super().__init__()
         self.noise_emb = NoiseEmbedding(cond_channels)
+        self.bn = nn.BatchNorm2d(image_channels)
+        self.gamma = nn.Linear(cond_channels, image_channels)
+        self.beta = nn.Linear(cond_channels, image_channels)
         self.conv_in = nn.Conv2d(image_channels, nb_channels, kernel_size=3, padding=1)
         self.blocks = nn.ModuleList([ResidualBlock(nb_channels) for _ in range(num_blocks)])
         self.conv_out = nn.Conv2d(nb_channels, image_channels, kernel_size=3, padding=1)
     
     def forward(self, noisy_input: torch.Tensor, c_noise: torch.Tensor) -> torch.Tensor:
         cond = self.noise_emb(c_noise) # TODO: not used yet
+        print(noisy_input.shape)
+        print(self.map.weight.shape)
+        print(self.map.bias.shape)
+        gamma = self.gamma(cond)
+        x = self.bn(noisy_input)
+        x = x * self.map.weight + self.map.bias
         x = self.conv_in(noisy_input)
         for block in self.blocks:
             x = block(x)
